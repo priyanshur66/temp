@@ -1,17 +1,19 @@
 import { WalletSelector } from "@aptos-labs/wallet-adapter-ant-design";
 import "@aptos-labs/wallet-adapter-ant-design/dist/index.css";
+import { useWallet , InputTransactionData } from "@aptos-labs/wallet-adapter-react";
 
-import { useWallet ,InputTransactionData } from "@aptos-labs/wallet-adapter-react"; // add input transaction data
-// import these 
-import { AccountAddress, Aptos, AptosConfig } from "@aptos-labs/ts-sdk";
-import { AptosClient, Network } from "aptos";
+import { AptosClient,Network } from "aptos";
+import {Aptos , AptosConfig , AccountAddress} from "@aptos-labs/ts-sdk"
+
+const moduleAddress = ""
+const moduleName = "RockPaperScissor_01"
+
+const client = new Aptos(new AptosConfig({
+  network:Network.TESTNET
+}))
 
 
-// ask to declare these 
-const moduleAddress =
-  "0x610ea90387f24c61fa507060dfb272a901ef420411473ab344cc45d72904e3bb";
-const moduleName = "RockPaperScissors_01";
-const client = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+
 
 const GameWrapper1 = ()=>{
   return (
@@ -65,77 +67,69 @@ const GameWrapper2 = ()=>{
 
 
 function App() {
-  // update the inports here 
-  const { account, connected, signAndSubmitTransaction } = useWallet();
+  const {account, connected ,signAndSubmitTransaction} = useWallet();
 
   const handleTransaction = async (
-    payload: InputTransactionData,
- 
-  ) => {
-    if (!account) return;
-   
+    payload:InputTransactionData
+  )=>{
+    if (!account) return
+
     try {
-      const res = await signAndSubmitTransaction(payload);
-      console.log(res);
+
+      const res = await signAndSubmitTransaction(payload)
+      console.log(res)
+
+
       const resultData = await client.getAccountResource({
-        accountAddress: account?.address,
-        resourceType: `${moduleAddress}::${moduleName}::DuelResult`,
-      });
-      const gameResult = resultData.duel_result.toString();
-      if (gameResult === "Win") {
+        accountAddress:account?.address,
+        resourceType:`${moduleAddress}::${moduleName}::DuelResult`
+      })
 
-      } else if (gameResult === "Lose") {
+      const gameResult = resultData.duel_result.toString()
 
-      } else {
-    
+      if(gameResult==="Win"){
+        console.log("hey you won this match")
+      }else if (gameResult === "Lose"){
+        console.log("Hey you lost this match")
       }
-      
+
+
+
     } catch (error) {
-      console.error("Transaction failed:", error);
-    } finally {
-     console.log("transcation successful");
+      console.log("error while signing transaction",error)
+    }finally{
+      console.log("handle transaction called")
     }
-  };
+  }
 
-  const handleMoveSelection = async (move: string) => {
-    if (move === "Clear") {
-   
+  const handleMoveSelection = async (move:string)=>{
 
-      return;
+    if(move==="Clear"){
+      return
     }
-    const payload: InputTransactionData = {
-      data: {
-        function: `${moduleAddress}::${moduleName}::duel`,
-        functionArguments: [move],
-      },
-    };
-    await handleTransaction(payload);
-  };
 
-  const toggleGameState = async () => {
-    if (!account) return;
-  
+    const payload:InputTransactionData={
+      data:{
+        function:`${moduleAddress}::${moduleName}::duel`,
+        functionArguments:[move]
+      }
+    }
+   const res = await handleTransaction(payload)
+   console.log("handle move selection result",res)
+  }
 
-    const payload: InputTransactionData = {
-      data: {
+  const toggleGameState = async()=>{
+    if(!account)return
+    const payload : InputTransactionData = {
+      data:{
         function: `${moduleAddress}::${moduleName}::createGame`,
-        functionArguments: [],
-      },
-    };
-    await handleTransaction(payload);
-   
-    
-  };
-  
+        functionArguments:[],
+      }
+    }
 
-  
-
-
-
-
-
-
-
+    const res = await handleTransaction(payload);
+    console.log("result for creating new game",res)
+  }
 
   return (
     <>
